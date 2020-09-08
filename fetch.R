@@ -5,10 +5,10 @@ source("/data/functions/write_to_redshift.R") #this allows you to write to an S3
 
 # Use the API.
 # # by inspecting the page we've found my user id
-# everydayHeroVicky<- GET("https://everydayhero.com/api/v2/pages/edc1e64c-0003-4000-8000-00000037bb45")
+everydayHeroVicky<- GET("https://everydayhero.com/api/v2/pages/edc1e64c-0003-4000-8000-00000037bb45")
 # everydayHeroVicky
 # str(content(everydayHeroVicky))
-# test<-content(everydayHeroVicky)
+test<-content(everydayHeroVicky)
 
 # get a list of the uuid of each team member
 #go to their page, right click and say "view source" and look for "window.edh.trackable.page_id"
@@ -49,9 +49,7 @@ getTeamInfo <- function(uuids) {
 }
 teamInfo <- getTeamInfo(teamUuids)
 
-#write to csv
-write.csv2(teamInfo, file = "teamInfo.csv", row.names = FALSE)
+if(getwd() =='/Users/banksv03/Documents/Projects/miles-for-refugees-dashboard'){
+  write.csv2(teamInfo, file = "teamInfo.csv", row.names = FALSE)
+} else {write_to_redshift(df = teamInfo, s3_folder = "vicky_banks", redshift_location = "dataforce_sandbox.vb_miles_refugees_team_info")}
 
-
-#Write to redshift
-write_to_redshift(df = teamInfo, s3_folder = "vicky_banks", redshift_location = "dataforce_sandbox.vb_miles_refugees_team_info")
