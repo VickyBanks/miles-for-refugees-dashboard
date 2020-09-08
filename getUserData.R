@@ -79,7 +79,7 @@ for (user in 1:nrow(teamUuids)) {
   uuid<- teamUuids$uuid[user]
   output<<-getUserInfo(teamUuids$uuid[user])
   
-  teamInfo<- teamInfo %>% rbind(output[[1]])
+  teamInfo<- teamInfo %>% rbind(cbind(uuid,output[[1]]))
   userActivities<- userActivities %>% rbind(cbind(uuid,output[[2]]))
 }
 userActivities
@@ -89,5 +89,12 @@ teamInfo
 getwd()
 if(getwd() =='/Users/banksv03/Documents/Projects/miles-for-refugees-dashboard'){
   write.csv2(teamInfo, file = "teamInfo.csv", row.names = FALSE)
-} else {write_to_redshift(df = teamInfo, s3_folder = "vicky_banks", redshift_location = "dataforce_sandbox.vb_miles_refugees_team_info")}
+  write.csv2(userActivities, file = "userActivities.csv", row.names = FALSE)
+} else {
+  write_to_redshift(df = teamInfo, s3_folder = "vicky_banks", redshift_location = "dataforce_sandbox.vb_miles_refugees_team_info")
+  write_to_redshift(df = userActivities, s3_folder = "vicky_banks", redshift_location = "dataforce_sandbox.vb_miles_refugees_user_activities")}
+
+
+
+
 
