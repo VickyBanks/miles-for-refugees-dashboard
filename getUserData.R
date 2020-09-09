@@ -21,8 +21,12 @@ test<-content(everydayHeroVicky)
 # 1. get a list of the uuid of each team member
 #go to their page, right click and say "view source" and look for "window.edh.trackable.page_id"
 teamUuids<- data.frame(
-  "name" = c("Vicky", "Bethany"),
-  "uuid" = c("edc1e64c-0003-4000-8000-00000037bb45", "edc1e64c-0003-4000-8000-00000037bb39")
+  "name" = c("Vicky", "Bethany","Emily", 
+             "Helen","Beth", "Laura",
+             "Charlotte", "Sohail", "Izzy"),
+  "uuid" = c("edc1e64c-0003-4000-8000-00000037bb45", "edc1e64c-0003-4000-8000-00000037bb39", "edc1e64c-0003-4000-8000-00000037d5fb",
+             "edc1e64c-0003-4000-8000-00000037bb67", "edc1e64c-0003-4000-8000-00000037d41c", "edc1e64c-0003-4000-8000-00000037d28e",
+             "edc1e64c-0003-4000-8000-00000037d35c", "edc1e64c-0003-4000-8000-00000037d320", "edc1e64c-0003-4000-8000-00000037d1d3")
 )
 
 #2. 
