@@ -29,7 +29,12 @@ teamUuids<- data.frame(
              "edc1e64c-0003-4000-8000-00000037d35c", "edc1e64c-0003-4000-8000-00000037d320", "edc1e64c-0003-4000-8000-00000037d1d3")
 )
 
-#2. 
+# teamUuids<- data.frame(
+#   "name" = c("Sohail"),
+#   "uuid" = c("edc1e64c-0003-4000-8000-00000037d320")
+# )
+
+#2 get the user's info. 
 #Function to process each activity and return the data needed
 processActivity<- function(activity) {
   processedActivity<- data.frame(
@@ -44,11 +49,35 @@ processActivity<- function(activity) {
   return(processedActivity)
 }
 
+#function to take in each activity and make a df of the user's summary of that activity.
+#if statement for if they haven't done that actitvity
+#eval(parse(text = paste0( parts allows the cols to be named with the acvitity
+activitySummaryFunction<- function(activityType, activitySummary){
+  print(activityType)
+  #Check if they've done a walk and make the DF accordingly
+  if (length(activitySummary) > 0) {
+    activitySummary<- eval(parse(text = paste0(
+      "data.frame(",
+      activityType,"_duration_total=", activitySummary$duration_in_seconds,",",
+      activityType,"_calories_total =", activitySummary$calories,",",
+      activityType,"_distance_total =", activitySummary$distance_in_meters,")")))
+  }
+  else{
+    activitySummary<- eval(parse(text = paste0(
+      "data.frame(",
+      activityType,"_duration_total=0",",",
+      activityType,"_calories_total =0,",
+      activityType,"_distance_total =0)")))
+  }
+  return(activitySummary)
+}
+
+
 #Fucntion to get the individual user's data
 getUserInfo<- function(uuid) {
   #goes to the user summary page and gets summary data
   summaryWebURL<- paste0("https://everydayhero.com/api/v2/pages/",uuid)
-  heroInfo<- content(GET(summaryWebURL))
+  heroInfo<<- content(GET(summaryWebURL))
   pageID<- heroInfo$page$id
   
   #This pulls in the summary info from the user page
@@ -56,12 +85,17 @@ getUserInfo<- function(uuid) {
     "name" = heroInfo$page$name,
     "fitnessGoal" = heroInfo$page$fitness_goal,
     "amount" = round(heroInfo$page$amount$cents/100,2),
-    "image" = heroInfo$page$image$facebook_xl_image_url
-  )
+    "image" = heroInfo$page$image$facebook_xl_image_url)
+ 
+#find the summary for each actitivity the user may have done
+  userInfo<-userInfo%>%
+    cbind(activitySummaryFunction("walk",heroInfo$page$fitness_activity_overview$walk)) %>%
+    cbind(activitySummaryFunction("run",heroInfo$page$fitness_activity_overview$run)) %>%
+    cbind(activitySummaryFunction("bike",heroInfo$page$fitness_activity_overview$bike))
   
   #get the activity data using the pageID found earlier
   activityWebURL<-paste0("https://everydayhero.com/api/v2/search/fitness_activities?page_id=",pageID)
-  activityInfo<- content(GET(activityWebURL))
+  activityInfo<<- content(GET(activityWebURL))
   
   userActivities <- data.frame()
   if (length(activityInfo$fitness_activities) > 0) {
