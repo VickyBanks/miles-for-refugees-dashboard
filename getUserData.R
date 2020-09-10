@@ -48,7 +48,7 @@ processActivity<- function(activity) {
 getUserInfo<- function(uuid) {
   #goes to the user summary page and gets summary data
   summaryWebURL<- paste0("https://everydayhero.com/api/v2/pages/",uuid)
-  heroInfo<<- content(GET(summaryWebURL))
+  heroInfo<- content(GET(summaryWebURL))
   pageID<- heroInfo$page$id
   
   #This pulls in the summary info from the user page
@@ -61,14 +61,17 @@ getUserInfo<- function(uuid) {
   
   #get the activity data using the pageID found earlier
   activityWebURL<-paste0("https://everydayhero.com/api/v2/search/fitness_activities?page_id=",pageID)
-  activityInfo<<- content(GET(activityWebURL))
+  activityInfo<- content(GET(activityWebURL))
   
-  userActivities<- data.frame()
-  for(row in 1:length(activityInfo$fitness_activities)){
-    
-    activity<-processActivity(activityInfo$fitness_activities[[row]])
-    userActivities<- userActivities %>% rbind(activity)
+  userActivities <- data.frame()
+  if (length(activityInfo$fitness_activities) > 0) {
+    for (row in 1:length(activityInfo$fitness_activities)) {
+      activity <- processActivity(activityInfo$fitness_activities[[row]])
+      userActivities <- userActivities %>% rbind(activity)
+    }
   }
+    else{print("no activities found")}
+
   return(list(
     "userInfo" = userInfo,
     "userActivity" = userActivities
@@ -77,26 +80,29 @@ getUserInfo<- function(uuid) {
 }
 
 teamInfo<-data.frame()
-userActivities<-data.frame()
+allUserActivities<-data.frame()
 
 for (user in 1:nrow(teamUuids)) {
   uuid<- teamUuids$uuid[user]
+  print(teamUuids$name[user])
   output<<-getUserInfo(teamUuids$uuid[user])
   
   teamInfo<- teamInfo %>% rbind(cbind(uuid,output[[1]]))
-  userActivities<- userActivities %>% rbind(cbind(uuid,output[[2]]))
+  
+  if(length(output[[2]])>0){
+  allUserActivities<- allUserActivities %>% rbind(cbind(uuid,output[[2]]))
+  }
 }
-userActivities
-teamInfo
+
 
 
 getwd()
 if(getwd() =='/Users/banksv03/Documents/Projects/miles-for-refugees-dashboard'){
   write.csv2(teamInfo, file = "teamInfo.csv", row.names = FALSE)
-  write.csv2(userActivities, file = "userActivities.csv", row.names = FALSE)
+  write.csv2(allUserActivities, file = "allUserActivities.csv", row.names = FALSE)
 } else {
   write_to_redshift(df = teamInfo, s3_folder = "vicky_banks", redshift_location = "dataforce_sandbox.vb_miles_refugees_team_info")
-  write_to_redshift(df = userActivities, s3_folder = "vicky_banks", redshift_location = "dataforce_sandbox.vb_miles_refugees_user_activities")}
+  write_to_redshift(df = allUserActivities, s3_folder = "vicky_banks", redshift_location = "dataforce_sandbox.vb_miles_refugees_user_activities")}
 
 
 
