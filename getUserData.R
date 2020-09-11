@@ -94,6 +94,7 @@ getUserInfo<- function(uuid) {
     "name" = heroInfo$page$name,
     "fitnessGoal" = heroInfo$page$fitness_goal,
     "amount" = round(heroInfo$page$amount$cents/100,2),
+    "targetAmmount" = round(heroInfo$page$target_cents/100,2),
     "image" = heroInfo$page$image$facebook_xl_image_url)
  
   #find the summary for each actitivity the user may have done
