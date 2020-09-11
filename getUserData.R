@@ -5,6 +5,8 @@ library(dplyr)
 library(purrr)
 library(readr)
 library(lubridate)
+library(tidyr)
+library(tidyverse)
 source("/data/functions/write_to_redshift.R") #this allows you to write to an S3 bucket and pull into Redshift
 
 # Use the API.
@@ -63,21 +65,39 @@ processActivity<- function(activity) {
 #eval(parse(text = paste0( parts allows the cols to be named with the acvitity
 activitySummaryFunction<- function(activityType, activitySummary){
   
+  # #Check if they've done a walk and make the DF accordingly
+  # if (length(activitySummary) > 0) {
+  #   activitySummary<- eval(parse(text = paste0(
+  #     "data.frame(",
+  #     activityType,"_duration_total=", activitySummary$duration_in_seconds,",",
+  #     activityType,"_calories_total =", activitySummary$calories,",",
+  #     activityType,"_distance_total =", activitySummary$distance_in_meters,")")))
+  # }
+  # else{
+  #   activitySummary<- eval(parse(text = paste0(
+  #     "data.frame(",
+  #     activityType,"_duration_total=0",",",
+  #     activityType,"_calories_total =0,",
+  #     activityType,"_distance_total =0)")))
+  # }
+  
   #Check if they've done a walk and make the DF accordingly
   if (length(activitySummary) > 0) {
-    activitySummary<- eval(parse(text = paste0(
-      "data.frame(",
-      activityType,"_duration_total=", activitySummary$duration_in_seconds,",",
-      activityType,"_calories_total =", activitySummary$calories,",",
-      activityType,"_distance_total =", activitySummary$distance_in_meters,")")))
+    activitySummary<- 
+      data.frame(
+      "duration_total"= activitySummary$duration_in_seconds,
+      "calories_total" = activitySummary$calories,
+      "distance_total" = activitySummary$distance_in_meters
+      )
   }
   else{
-    activitySummary<- eval(parse(text = paste0(
-      "data.frame(",
-      activityType,"_duration_total=0",",",
-      activityType,"_calories_total =0,",
-      activityType,"_distance_total =0)")))
+    activitySummary<- data.frame(
+      "duration_total"= 0,
+      "calories_total" = 0,
+      "distance_total" = 0
+    )
   }
+  activitySummary<- cbind(activityType,activitySummary)
   return(activitySummary)
 }
 
@@ -94,17 +114,20 @@ getUserInfo<- function(uuid) {
     "name" = heroInfo$page$name,
     "fitnessGoal" = round(heroInfo$page$fitness_goal*1609.34,2),
     "amount" = round(heroInfo$page$amount$cents/100,2),
-    "targetAmmount" = round(heroInfo$page$target_cents/100,2),
+    "targetAmount" = round(heroInfo$page$target_cents/100,2),
     "image" = heroInfo$page$image$facebook_xl_image_url)
  
   #find the summary for each actitivity the user may have done
-  userInfo<-userInfo%>%
-    cbind(activitySummaryFunction("walk",heroInfo$page$fitness_activity_overview$walk)) %>%
-    cbind(activitySummaryFunction("run",heroInfo$page$fitness_activity_overview$run)) %>%
-    cbind(activitySummaryFunction("bike",heroInfo$page$fitness_activity_overview$bike))
-  
+  userActivitySummary <- 
+    cbind(heroInfo$page$name,
+          activitySummaryFunction("walk",heroInfo$page$fitness_activity_overview$walk)) %>%
+    rbind(cbind(heroInfo$page$name,
+          activitySummaryFunction("run",heroInfo$page$fitness_activity_overview$run))) %>%
+    rbind(cbind(heroInfo$page$name,
+          activitySummaryFunction("bike",heroInfo$page$fitness_activity_overview$bike)))
+    
   #get the money raised
-  dailyDontionTotal<<-data.frame(
+  dailyDontionTotal<-data.frame(
     "date" = Sys.Date(),
     "name" = heroInfo$page$name,
     "totalRaised" = heroInfo$page$amount$cents
@@ -112,7 +135,7 @@ getUserInfo<- function(uuid) {
   
   #get the activity data using the pageID found earlier
   activityWebURL<-paste0("https://everydayhero.com/api/v2/search/fitness_activities?page_id=",pageID)
-  activityInfo<<- content(GET(activityWebURL))
+  activityInfo<- content(GET(activityWebURL))
   
   userActivities <- data.frame()
   if (length(activityInfo$fitness_activities) > 0) {
@@ -126,13 +149,15 @@ getUserInfo<- function(uuid) {
   return(list(
     "userInfo" = userInfo,
     "userActivity" = userActivities,
-    "dailyDonationTotal" = dailyDontionTotal
+    "dailyDonationTotal" = dailyDontionTotal,
+    "userActivitySummary"= userActivitySummary
   ))
   
 }
 
 teamInfo<-data.frame()
 allUserActivities<-data.frame()
+userActivitySummary<-data.frame()
 
 for (user in 1:nrow(teamUuids)) {
   uuid<- teamUuids$uuid[user]
@@ -148,8 +173,9 @@ for (user in 1:nrow(teamUuids)) {
   }
   
   moneyRaised <- moneyRaised %>% rbind(output[[3]])
+  userActivitySummary <- userActivitySummary%>%rbind(output[[4]])
+  
 }
-
 #convert to char otherwise it won't push to redshift
 moneyRaised$date<- as.character(moneyRaised$date)
 getwd()
@@ -157,10 +183,12 @@ write.csv(moneyRaised, file = "moneyRaised.csv", row.names = FALSE)
 if(getwd() =='/Users/banksv03/Documents/Projects/miles-for-refugees-dashboard'){
   write.csv(teamInfo, file = "teamInfo.csv", row.names = FALSE)
   write.csv(allUserActivities, file = "allUserActivities.csv", row.names = FALSE)
+  write.csv(userActivitySummary, file = "userActivitySummary.csv", row.names = FALSE)
 } else {
   write_to_redshift(df = teamInfo, s3_folder = "vicky_banks", redshift_location = "dataforce_sandbox.vb_miles_refugees_team_info")
   write_to_redshift(df = allUserActivities, s3_folder = "vicky_banks", redshift_location = "dataforce_sandbox.vb_miles_refugees_user_activities")
   write_to_redshift(df = moneyRaised, s3_folder = "vicky_banks", redshift_location = "dataforce_sandbox.vb_miles_refugees_money_raised")
+  write_to_redshift(df = moneyRaised, s3_folder = "vicky_banks", redshift_location = "dataforce_sandbox.vb_miles_refugees_user_activity_summary")
   }
 
 
