@@ -50,7 +50,8 @@ processActivity<- function(activity) {
   processedActivity<- data.frame(
     "type" = activity$type,
     "startedAt" = activity$started_at,
-    "coordinate" = paste0("(",activity$coordinate$lat,",",activity$coordinate$lon,")"),
+    "coordinate_lat" = if(is.null(activity$coordinate)){0}else{activity$coordinate$lat},
+    "coordinate_long" = if(is.null(activity$coordinate)){0}else{activity$coordinate$lon},
     "distanceMetres" = activity$distance_in_meters,
     "durationSec" = activity$duration_in_seconds
   )
@@ -134,20 +135,22 @@ allUserActivities<-data.frame()
 
 for (user in 1:nrow(teamUuids)) {
   uuid<- teamUuids$uuid[user]
+  name<- teamUuids$name[user]
   print(teamUuids$name[user])
+  
   output<<-getUserInfo(teamUuids$uuid[user])
   
   teamInfo<- teamInfo %>% rbind(cbind(uuid,output[[1]]))
   
   if(length(output[[2]])>0){
-  allUserActivities<- allUserActivities %>% rbind(cbind(uuid,output[[2]]))
+  allUserActivities<- allUserActivities %>% rbind(cbind(name,output[[2]]))
   }
   
   moneyRaised <- moneyRaised %>% rbind(output[[3]])
 }
 
-
-
+#convert to char otherwise it won't push to redshift
+moneyRaised$date<- as.character(moneyRaised$date)
 getwd()
 write.csv(moneyRaised, file = "moneyRaised.csv", row.names = FALSE)
 if(getwd() =='/Users/banksv03/Documents/Projects/miles-for-refugees-dashboard'){
