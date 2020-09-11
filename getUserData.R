@@ -4,6 +4,7 @@ library(httr)
 library(dplyr)
 library(purrr)
 library(readr)
+library(lubridate)
 source("/data/functions/write_to_redshift.R") #this allows you to write to an S3 bucket and pull into Redshift
 
 # Use the API.
@@ -40,6 +41,7 @@ teamUuids<- data.frame(
 #Team donanations so far
 #moneyRaised<- read_csv("donation_totals_pre_2020-09-11.csv")
 moneyRaised<- read_csv("moneyRaised.csv")
+moneyRaised$date<- ymd(as.character(moneyRaised$date))
 
 
 #2 get the user's info. 
