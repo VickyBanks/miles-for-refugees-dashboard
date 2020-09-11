@@ -92,7 +92,7 @@ getUserInfo<- function(uuid) {
   #This pulls in the summary info from the user page
   userInfo<- data.frame(
     "name" = heroInfo$page$name,
-    "fitnessGoal" = heroInfo$page$fitness_goal,
+    "fitnessGoal" = round(heroInfo$page$fitness_goal*1609.34,2),
     "amount" = round(heroInfo$page$amount$cents/100,2),
     "targetAmmount" = round(heroInfo$page$target_cents/100,2),
     "image" = heroInfo$page$image$facebook_xl_image_url)
