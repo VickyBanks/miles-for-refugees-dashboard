@@ -125,6 +125,7 @@ getUserInfo<- function(uuid) {
           activitySummaryFunction("run",heroInfo$page$fitness_activity_overview$run))) %>%
     rbind(cbind(heroInfo$page$name,
           activitySummaryFunction("bike",heroInfo$page$fitness_activity_overview$bike)))
+  names(userActivitySummary)[1]<-"name"
     
   #get the money raised
   dailyDontionTotal<-data.frame(
@@ -188,7 +189,7 @@ if(getwd() =='/Users/banksv03/Documents/Projects/miles-for-refugees-dashboard'){
   write_to_redshift(df = teamInfo, s3_folder = "vicky_banks", redshift_location = "dataforce_sandbox.vb_miles_refugees_team_info")
   write_to_redshift(df = allUserActivities, s3_folder = "vicky_banks", redshift_location = "dataforce_sandbox.vb_miles_refugees_user_activities")
   write_to_redshift(df = moneyRaised, s3_folder = "vicky_banks", redshift_location = "dataforce_sandbox.vb_miles_refugees_money_raised")
-  write_to_redshift(df = moneyRaised, s3_folder = "vicky_banks", redshift_location = "dataforce_sandbox.vb_miles_refugees_user_activity_summary")
+  write_to_redshift(df = userActivitySummary, s3_folder = "vicky_banks", redshift_location = "dataforce_sandbox.vb_miles_refugees_user_activity_summary")
   }
 
 
