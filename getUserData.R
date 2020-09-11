@@ -1,3 +1,5 @@
+if(getwd() !='/Users/banksv03/Documents/Projects/miles-for-refugees-dashboard'){setwd("/data/users/VickyBanks/miles-for-refugees-dashboard")}
+
 library(httr)
 library(dplyr)
 library(purrr)
