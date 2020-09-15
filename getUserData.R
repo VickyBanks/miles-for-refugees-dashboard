@@ -1,7 +1,6 @@
 if(getwd() !='/Users/banksv03/Documents/Projects/miles-for-refugees-dashboard'){setwd("/data/users/VickyBanks/miles-for-refugees-dashboard")}
 
 library(httr)
-library(dplyr)
 library(purrr)
 library(readr)
 library(lubridate)
@@ -125,7 +124,8 @@ getUserInfo<- function(uuid) {
           activitySummaryFunction("run",heroInfo$page$fitness_activity_overview$run))) %>%
     rbind(cbind(heroInfo$page$name,
           activitySummaryFunction("bike",heroInfo$page$fitness_activity_overview$bike))) %>%
-    cbind("image" = heroInfo$page$image$facebook_xl_image_url)
+    cbind("image" = heroInfo$page$image$facebook_xl_image_url)%>%
+    cbind("fitness_goal" = round(heroInfo$page$fitness_goal*1609.34,2))
   
   names(userActivitySummary)[1]<-"name"
     
@@ -183,11 +183,14 @@ for (user in 1:nrow(teamUuids)) {
 #Create a summary for all users
 allUsers <- cbind(
   name = 'All',
-  userActivitySummary %>% group_by(activityType) %>%
+  userActivitySummary %>% 
+    select(-name,-image)%>%
+    group_by(activityType) %>%
     summarise(
       duration_total = sum(duration_total),
       calories_total = sum(calories_total),
-      distance_total = sum(distance_total)
+      distance_total = sum(distance_total),
+      fitness_goal = sum(fitness_goal)
     )
 ) %>% cbind(image = 'https://www.internetmatters.org/wp-content/uploads/2019/04/BBC_logo.png')
 userActivitySummary <- userActivitySummary %>% rbind(allUsers)
@@ -195,7 +198,7 @@ userActivitySummary <- userActivitySummary %>% rbind(allUsers)
 #convert to char otherwise it won't push to redshift
 moneyRaised$date<- as.character(moneyRaised$date)
 getwd()
-#write.csv(moneyRaised, file = "moneyRaised.csv", row.names = FALSE)
+write.csv(moneyRaised, file = "moneyRaised.csv", row.names = FALSE)
 if(getwd() =='/Users/banksv03/Documents/Projects/miles-for-refugees-dashboard'){
   write.csv(teamInfo, file = "teamInfo.csv", row.names = FALSE)
   write.csv(allUserActivities, file = "allUserActivities.csv", row.names = FALSE)
