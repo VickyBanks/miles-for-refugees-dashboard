@@ -63,6 +63,7 @@ for(name in 1:nrow(heroPages)) {
     rvest::html_text()
   donationInfo
   
+  if(length(donor_name>0)){
   donation<-data.frame()
   for(row in 1:length(donor_name)){
     donationInfoSplit<-data.frame(str_split(donationInfo[row],"\n"))
@@ -78,6 +79,7 @@ for(name in 1:nrow(heroPages)) {
     
     donation<- donation %>% rbind(cbind(donation_value, donation_gift_aid))
     donation
+  }
   }
   
   
