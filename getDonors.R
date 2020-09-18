@@ -38,7 +38,7 @@ for(name in 1:nrow(heroPages)) {
   htmlData <- read_html(heroPageUrl)
   
   #Get donar names
-  donorNames <<- htmlData %>%
+  donor_name <<- htmlData %>%
     rvest::html_nodes('body') %>%
     xml2::xml_find_all(
       "//div[contains(@id,'activity-feed')]
@@ -64,28 +64,28 @@ for(name in 1:nrow(heroPages)) {
   donationInfo
   
   donation<-data.frame()
-  for(row in 1:length(donorNames)){
+  for(row in 1:length(donor_name)){
     donationInfoSplit<-data.frame(str_split(donationInfo[row],"\n"))
     donationInfoSplit
     
-    donationValue<-data.frame("value" = str_split(donationInfoSplit[3,]," "))
-    donationValue<-donationValue[10,]
-    donationValue
+    donation_value<-data.frame("value" = str_split(donationInfoSplit[3,]," "))
+    donation_value<-donation_value[10,]
+    donation_value
     
-    donationGiftAid<-data.frame("gift_aid" = str_split(donationInfoSplit[5,]," "))
-    donationGiftAid<-if(is.na(donationGiftAid[12,])== TRUE){'£0.00'} else{donationGiftAid[12,]}
-    donationGiftAid
+    donation_gift_aid<-data.frame("gift_aid" = str_split(donationInfoSplit[5,]," "))
+    donation_gift_aid<-if(is.na(donation_gift_aid[12,])== TRUE){'£0.00'} else{donation_gift_aid[12,]}
+    donation_gift_aid
     
-    donation<- donation %>% rbind(cbind(donationValue, donationGiftAid))
+    donation<- donation %>% rbind(cbind(donation_value, donation_gift_aid))
     donation
   }
   
   
-  if(length(donorNames)>0){
-    print(length(donorNames))
+  if(length(donor_name)>0){
+    print(length(donor_name))
     donorDF <- donorDF%>%
       rbind(
-        cbind(data.frame("name" = heroPages$name[name], donorNames),
+        cbind(data.frame("name" = heroPages$name[name], donor_name),
               donation)
         )
     }
@@ -93,6 +93,9 @@ for(name in 1:nrow(heroPages)) {
 
 }         
 knitr::kable(donorDF%>%head(10))
+
+donorDF$donation_value<- as.character(donorDF$donation_value)
+donorDF$donation_gift_aid<- as.character(donorDF$donation_gift_aid)
 
 getwd()
 if(getwd() =='/Users/banksv03/Documents/Projects/miles-for-refugees-dashboard'){
