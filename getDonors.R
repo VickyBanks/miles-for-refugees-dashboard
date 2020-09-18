@@ -66,15 +66,15 @@ for(name in 1:nrow(heroPages)) {
   if(length(donor_name>0)){
   donation<-data.frame()
   for(row in 1:length(donor_name)){
-    donationInfoSplit<-data.frame(str_split(donationInfo[row],"\n"))
+    donationInfoSplit<<-data.frame(str_split(donationInfo[row],"\n"))
     donationInfoSplit
     
     donation_value<-data.frame("value" = str_split(donationInfoSplit[3,]," "))
-    donation_value<-donation_value[10,]
+    donation_value<-as.character(donation_value[10,])
     donation_value
     
     donation_gift_aid<-data.frame("gift_aid" = str_split(donationInfoSplit[5,]," "))
-    donation_gift_aid<-if(is.na(donation_gift_aid[12,])== TRUE){'£0.00'} else{donation_gift_aid[12,]}
+    donation_gift_aid<-as.character(if(is.na(donation_gift_aid[12,])== TRUE){'£0.00'} else{donation_gift_aid[12,]})
     donation_gift_aid
     
     donation<- donation %>% rbind(cbind(donation_value, donation_gift_aid))
