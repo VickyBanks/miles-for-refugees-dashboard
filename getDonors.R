@@ -1,5 +1,8 @@
+if(getwd() !='/Users/banksv03/Documents/Projects/miles-for-refugees-dashboard'){setwd("/data/users/VickyBanks/miles-for-refugees-dashboard")}
+
 library(rvest)
 library(dplyr)
+source("/data/functions/write_to_redshift.R") #this allows you to write to an S3 bucket and pull into Redshift
 
 
 #/html/body/div[3]/div[1]/div[2]/div[1]/div/div/h3   lizzie = div[1]/div/div/h3
