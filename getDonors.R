@@ -28,7 +28,7 @@ heroPages<- data.frame(
 donorDF<-data.frame()
 for(name in 1:nrow(heroPages)) {
   print(heroPages$name[name])
-  heroPageUrl <-
+  heroPageUrl <<-
     paste0(
       "https://miles-for-refugees-2020.everydayhero.com/uk/",
       heroPages$slug[name],
@@ -98,6 +98,14 @@ knitr::kable(donorDF%>%head(10))
 
 donorDF$donation_value<- as.character(donorDF$donation_value)
 donorDF$donation_gift_aid<- as.character(donorDF$donation_gift_aid)
+
+teamDonations<- data.frame(
+  "name" = 'Team Data Force',
+  "donor_name" = 'Wendy Wang', 
+  "donation_value" = '£10.62',
+  "donation_gift_aid" = '£2.66',
+  "row" = '1')
+donorDF<-donorDF %>% rbind(teamDonations)
 
 getwd()
 if(getwd() =='/Users/banksv03/Documents/Projects/miles-for-refugees-dashboard'){
