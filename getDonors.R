@@ -77,7 +77,7 @@ for(name in 1:nrow(heroPages)) {
     donation_gift_aid<-as.character(if(is.na(donation_gift_aid[12,])== TRUE){'£0.00'} else{donation_gift_aid[12,]})
     donation_gift_aid
     
-    donation<- donation %>% rbind(cbind(donation_value, donation_gift_aid))
+    donation<- donation %>% rbind(cbind(donation_value, donation_gift_aid,row))
     donation
   }
   }
